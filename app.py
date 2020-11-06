@@ -13,6 +13,7 @@ cur = db_conn.cursor()
 
 @app.route('/rates', methods=['GET', 'POST'])
 def rates():
+    # Task 1, Part 1 GET /rates request
     if request.method == 'GET':
         try:
             if not request.args:
@@ -72,7 +73,8 @@ def rates():
 
         except Exception as e:
             return json.dumps({"message": str(e)}), 500
-    
+
+    # Task 1, Part 1 (including Part 2) POST /rates request
     if request.method == 'POST':
         try:
             if request.json is None:
@@ -86,11 +88,12 @@ def rates():
             data = []
             error = []
 
+            # if currency key is available in json, Part 2 of Task 2
             if currency:
                 response = requests.get(CONVERT_URL).json()
                 currencies = response["rates"]
                 if currency in currencies:
-                    price = int(price / currencies[currency])
+                    price = int(price / currencies[currency])   # convert to USD 
                 else:
                     return json.dumps({"message": f"Invalid currency: {request.json['currency']}. Please provide a valid 3 letter currency code."}), 400
 
@@ -129,6 +132,7 @@ def rates():
             return json.dumps({"message": str(e)}), 500
 
 
+# Task 1, Part 2 GET /rates_null request
 @app.route('/rates_null', methods=['GET'])
 def rates_null():
     try:

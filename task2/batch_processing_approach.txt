@@ -1,0 +1,25 @@
+To create a batch processing task, I can either implement a single endpoint to batch different requests in a 
+single call or implement a bulk version of the API endpoints that accepts multiple resources in single call.
+The design should be such that it reduces the impact on resources and network usage, ensures data reliability 
+and gets the data over as close to real time as possible.
+
+If I have a  single endpoint, then it should be designed in such a way that- different datasets can be sent in 
+a single networking call. These can be processed in parallel server-side, reducing the network calls and API 
+proxies that needs to be handled. This can be considered as "meta" HTTP request, where the main request contains 
+different sub-requests.
+
+Considerations for batch processing:
+(1) Error handling: 
+If a single request or resource in a batch request fails, should the entire batch fail or process as many requests 
+as possible in that batch? This should be decided.
+
+(2) Batch sizes: 
+It's better to specify a limit on calling the endpoints in a given timeframe, this avoids batches from being stuck 
+due to huge amount of data.
+
+(3) Speed:
+The requests should be processed in efficient manner and should not be stuck on for hours.
+
+(3) Architecture: 
+Build a robust architecture with some streaming technology like Kafka to properly channelize the requests and 
+responses for huge volume of data in production environment.

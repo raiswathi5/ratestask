@@ -23,15 +23,17 @@ def rates():
             destination = request.args.get('destination').lower() if 'destination' in request.args else None
             error = []
             if origin:
-                regions = ports(origin, cur)
+                region_slugs = regions(origin, cur)
+                port_codes = ports(origin, cur)
                 port_code = port(origin, cur)
-                if not (regions or port_code):
+                if not (region_slugs or port_codes or port_code):
                     return json.dumps({"message": f"{request.args.get('origin')} is invalid. Please enter a valid port code or region_slug."}), 404
             
             if destination:
-                regions = ports(destination, cur)
+                region_slugs = regions(destination, cur)
+                port_codes = ports(destination, cur)
                 port_code = port(destination, cur)
-                if not (regions or port_code):
+                if not (region_slugs or port_codes or port_code):
                     return json.dumps({"message": f"{request.args.get('destination')} is invalid. Please enter a valid port code or region_slug."}), 404
 
             if date_from and date_to:
@@ -44,11 +46,16 @@ def rates():
                 cur.execute('''SELECT CAST(day AS text) AS day, 
                             CAST(AVG(price) AS int) AS average_price FROM prices 
                             WHERE (LOWER(orig_code) = %s OR 
-                            orig_code in (select code from ports where parent_slug = %s)) 
+                            orig_code in (select code from ports where parent_slug = %s) OR
+                            orig_code in (select code from ports where parent_slug in 
+                            (select slug from regions where regions.parent_slug =%s))) 
                             AND (LOWER(dest_code) = %s OR 
-                            dest_code in (select code from ports where parent_slug = %s)) 
+                            dest_code in (select code from ports where parent_slug = %s) OR
+                            dest_code in (select code from ports where parent_slug in 
+                            (select slug from regions where regions.parent_slug =%s)))  
                             AND day BETWEEN %s AND %s
-                            GROUP BY day ORDER BY day;''',(origin, origin, destination, destination, date_from, date_to))
+                            GROUP BY day ORDER BY day;''',
+                            (origin, origin, origin, destination, destination, destination, date_from, date_to))
                 response = result_arr(cur)
                 return response, 200
 
@@ -133,15 +140,17 @@ def rates_null():
         destination = request.args.get('destination').lower() if 'destination' in request.args else None
         error = []
         if origin:
-            regions = ports(origin, cur)
+            region_slugs = regions(origin, cur)
+            port_codes = ports(origin, cur)
             port_code = port(origin, cur)
-            if not (regions or port_code):
+            if not (region_slugs or port_codes or port_code):
                 return json.dumps({"message": f"{request.args.get('origin')} is invalid. Please enter a valid port code or region_slug."}), 404
-
+        
         if destination:
-            regions = ports(destination, cur)
+            region_slugs = regions(destination, cur)
+            port_codes = ports(destination, cur)
             port_code = port(destination, cur)
-            if not (regions or port_code):
+            if not (region_slugs or port_codes or port_code):
                 return json.dumps({"message": f"{request.args.get('destination')} is invalid. Please enter a valid port code or region_slug."}), 404
 
         if date_from and date_to:
@@ -156,11 +165,16 @@ def rates_null():
                             ELSE CAST(AVG(price) AS int)
                             END AS average_price FROM prices
                             WHERE (LOWER(orig_code) = %s OR 
-                            orig_code in (select code from ports where parent_slug = %s)) 
+                            orig_code in (select code from ports where parent_slug = %s) OR
+                            orig_code in (select code from ports where parent_slug in 
+                            (select slug from regions where regions.parent_slug =%s))) 
                             AND (LOWER(dest_code) = %s OR 
-                            dest_code in (select code from ports where parent_slug = %s)) 
+                            dest_code in (select code from ports where parent_slug = %s) OR
+                            dest_code in (select code from ports where parent_slug in 
+                            (select slug from regions where regions.parent_slug =%s)))  
                             AND day BETWEEN %s AND %s
-                            GROUP BY day ORDER BY day;''',(origin, origin, destination, destination, date_from, date_to))
+                            GROUP BY day ORDER BY day;''',
+                            (origin, origin, origin, destination, destination, destination, date_from, date_to))
             response = result_arr(cur)
             return response, 200
 

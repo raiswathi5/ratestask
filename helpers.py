@@ -4,12 +4,16 @@ from datetime import datetime
 def convert_date(date_str):
     return datetime.strptime(date_str, "%Y-%m-%d").date()
 
+def port(code, cur):
+    cur.execute('''SELECT code FROM ports WHERE LOWER(code) = %s;''', (code,))
+    return cur.fetchall()
+
 def ports(code, cur):
     cur.execute('''SELECT code FROM ports WHERE parent_slug = %s;''', (code,))
     return cur.fetchall()
 
-def port(code, cur):
-    cur.execute('''SELECT code FROM ports WHERE LOWER(code) = %s;''', (code,))
+def regions(code, cur):
+    cur.execute('''SELECT slug FROM regions WHERE parent_slug = %s;''', (code,))
     return cur.fetchall()
 
 def result_arr(cur):
